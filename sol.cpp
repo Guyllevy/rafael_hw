@@ -77,6 +77,8 @@ class Uav{
     bool exists_target;
     Vec3 current_target;
     steering_state state;
+    std::string file_name;
+    std::ofstream out_stream;
 
     public:
     Uav(int N, double R, double X0, double Y0, double Z0, double V0, double Az) : position{Vec3(X0,Y0,Z0)}, 
@@ -86,14 +88,20 @@ class Uav{
         acc_ability_right = speed.normalize().cross(Vec3(0,0,1)) * (speed.mag() * speed.mag() / min_turn_r);
         exists_target = false;
         state = STEER_AHEAD;
+        file_name = "UAV" + std::to_string(serial_number) + ".txt";
+        out_stream = std::ofstream(file_name);
     }
 
     double get_azimuth(){
         return Vec3(1,0,0).angle(this->speed);
     }
 
-    void emit_pos(){
-        std::cout << serial_number << " " << position.x << " " << position.y << " " << position.z << std::endl;
+    void emit_data(double time){
+        out_stream.open(file_name, std::ios_base::app);
+        out_stream << std::fixed << std::setprecision(3) << time << " " 
+        << std::setprecision(2) << position.x << " " << position.y <<
+         " " << rad_to_deg(this->get_azimuth()) << std::endl;
+        out_stream.close();
     }
 
     void get_command(Command c){
@@ -205,33 +213,26 @@ int read_commands(std::string path, std::vector<Command>& commands){
 }
 
 int main(){
-    // define output file
-    std::ofstream out("output.txt");
-    if (!out) {
-        std::cerr << "Failed to open output file" << std::endl;
-        return 1;
-    }
-    std::streambuf* cout_buf = std::cout.rdbuf(out.rdbuf());
-
-    std::cout << "AHEAD " << STEER_AHEAD << std::endl;
-    std::cout << "LEFT " << STEER_LEFT << std::endl;
-    std::cout << "RIGHT " << STEER_RIGHT << std::endl;
 
     InitData* data = new InitData;
     std::vector<Command> commands;
     
     // read initialization inputs
     read_params("SimParams.ini", data);
-    show_init_data(data);
+
+    // debug
+    // show_init_data(data);
     
     // read commands
     read_commands("SimCmds.txt", commands);
 
     // sort commands by time
     std::sort(commands.begin(), commands.end(), compareByTime);
-    for (auto c : commands){
-        c.show();
-    }
+
+    // debug
+    // for (auto c : commands){
+    //     c.show();
+    // }
 
     // initialize vehicles
     std::vector<Uav*> vehicles;
@@ -256,18 +257,13 @@ int main(){
 
         // update vehicles state and emit simulation state
         for (auto v : vehicles){
-            std::cout << std::fixed << std::setprecision(3) << time << std::setprecision(2) << " ";
-            v->emit_pos();
+            v->emit_data(time);
             v->update(data->Dt);
         } 
 
         // keeping time
         time += data->Dt;
     }
-
-    // Restore standard output to console
-    std::cout.rdbuf(cout_buf);
-    out.close();
 
     return 0;
 }
