@@ -8,12 +8,40 @@ time_lim = 5
 num_uav = 1
 
 # clip coordinates
+clip_scale = 0.3
 flip_clip = np.array([[1, 0], [0, -1]])
+scale_clip = np.identity(2) * clip_scale
 translate_clip = np.array([[SCREEN_WIDTH/2, SCREEN_HEIGHT/2]]).transpose()
 
 ### functions ###
 
-def display_target(x,y):
+def display_target(x,y,size,color):
+     # object coordinates x in [-1,1], y in [-1,1]
+    target_vertices = np.array([[-0.3, -0.3],
+                            [0.3, -0.3],
+                            [0.3, 0.3],
+                            [-0.3, 0.3]]).transpose() # tringle pointed up
+
+    target_color = color
+    
+    # world coordinates - scale and rotate UAV
+    # (space- x in [-SCREEN_WIDTH/2, SCREEN_WIDTH/2], 
+    #         y in [-SCREEN_HEIGHT/2, SCREEN_HEIGHT/2])
+    scale = np.identity(2) * size
+
+    translate_model = np.array([[x, y]]).transpose()
+
+    model = scale
+
+    # transform
+    points = model @ target_vertices
+    points = points + translate_model
+    points = flip_clip @ scale_clip @ points
+    points = points + translate_clip
+    points = points.transpose()
+    
+    pygame.draw.polygon(screen, target_color, points)
+    
     return
 
 def display_uav(x, y, az, size, color):
@@ -41,7 +69,7 @@ def display_uav(x, y, az, size, color):
     # transform
     points = model @ uav_vertices
     points = points + translate_model
-    points = flip_clip @ points
+    points = flip_clip @ scale_clip @ points
     points = points + translate_clip
     points = points.transpose()
     
@@ -74,6 +102,7 @@ while run and index < len(data_single_uav):
     
     pos = data_single_uav[index]
     display_uav(pos[1], pos[2], pos[3], 25, (200, 40, 40))
+    display_target(350, 350, 25, (200, 40, 40))
     
     for event in pygame.event.get():
         if event.type == pygame.QUIT:

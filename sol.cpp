@@ -73,7 +73,7 @@ class Uav{
     double min_turn_r;
     Vec3 position;
     Vec3 speed; // speed defines azimut.
-    Vec3 acc_ability_right; // the accelaration acting on a uav turning right. (minus this will be left)
+    double radial_acc_ability; // the accelaration acting on a uav turning right. (minus this will be left)
     bool exists_target;
     Vec3 current_target;
     steering_state state;
@@ -85,7 +85,7 @@ class Uav{
     serial_number{N}, min_turn_r{R} {
         double Az_rad = deg_to_rad(Az);
         speed = Vec3(V0 * cos(Az_rad), V0 * sin(Az_rad), 0);
-        acc_ability_right = speed.normalize().cross(Vec3(0,0,1)) * (speed.mag() * speed.mag() / min_turn_r);
+        radial_acc_ability =  (speed.mag() * speed.mag() / min_turn_r);
         exists_target = false;
         state = STEER_AHEAD;
         file_name = "UAV" + std::to_string(serial_number) + ".txt";
@@ -93,7 +93,7 @@ class Uav{
     }
 
     double get_azimuth(){
-        return Vec3(1,0,0).angle(this->speed);
+        return atan2(speed.y, speed.x);
     }
 
     void emit_data(double time){
@@ -114,25 +114,23 @@ class Uav{
         // changin steering state depending on the check.
         // do this by calculating angle alpha between path to target and uav azimuth.
         double epsilon_turn = 0.05;
+        Vec3 acc = Vec3();
+
         if (exists_target){
             Vec3 current_target_xy = Vec3(current_target.x, current_target.y, 0);
             Vec3 position_xy = Vec3(position.x, position.y, 0);
             Vec3 path = (current_target_xy - position_xy).normalize();
+            Vec3 planar_speed = Vec3(speed.x, speed.y, 0);
 
-            double alpha = this->get_azimuth() - Vec3(1,0,0).angle(path); // [-pi, pi]
-
-            if (alpha >= epsilon_turn) state = STEER_LEFT;
-            else if (alpha <= -epsilon_turn) state = STEER_RIGHT;
-            else state = STEER_AHEAD;
+            // fix tommorow
+            double alpha = this->get_azimuth() - atan2(path.x, path.y);
+            if (alpha >= epsilon_turn) acc = (planar_speed.normalize().cross(Vec3(0,0,1))) * radial_acc_ability;
+            else if (alpha <= -epsilon_turn) acc = Vec3(0,0,0) - (planar_speed.normalize().cross(Vec3(0,0,1))) * radial_acc_ability;
+            else acc = Vec3(0,0,0);
         }
         else {
-            state = STEER_AHEAD;
+            acc = Vec3(0,0,0);
         }
-
-        Vec3 acc = Vec3();
-        if (state == STEER_RIGHT) acc = acc_ability_right;
-        else if (state == STEER_LEFT) acc = Vec3(0,0,0) - acc_ability_right;
-        else acc = Vec3(0,0,0);
 
         // update speed depending on turn state.
         speed = speed + acc * dt;
