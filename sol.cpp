@@ -104,8 +104,9 @@ class Uav{
         out_stream.close();
     }
 
-    void get_command(Command c){
+    void recieve_command(Command c){
         current_target = Vec3(c.x, c.y, 0);
+        exists_target = true;
     }
 
     void update(double dt){
@@ -143,7 +144,7 @@ class Uav{
 };
 
 double parse_double(std::string content, std::string key) {
-    std::regex re(key + R"(\s*=\s*\d+(\.\d+)?)");
+    std::regex re(key + R"(\s*=\s*(-)?\d+(\.\d+)?)");
     std::smatch match;
     int found = std::regex_search(content, match, re);
     std::string var_str = match[0].str().substr(match[0].str().find("=") + 1);
@@ -221,7 +222,7 @@ int main(){
     read_params("SimParams.ini", data);
 
     // debug
-    // show_init_data(data);
+    show_init_data(data);
     
     // read commands
     read_commands("SimCmds.txt", commands);
@@ -245,14 +246,23 @@ int main(){
 
     double time = 0.0;
     int command_counter = 0;
-    Command pending_command = commands[0];
+    Command pending_command;
+    bool command_pending = false;
+    if (commands.size() > 0){
+        pending_command = commands[0];
+        command_pending = true;
+    }
+
     while (time < data->TimeLim){     // run loop, outputing telemetry
         
         // send all commands which are due time.
-        while (time >= pending_command.time){ 
-            vehicles[pending_command.uav_sn]->get_command(pending_command);
+        while (command_pending && time >= pending_command.time){ 
+            vehicles[pending_command.uav_sn]->recieve_command(pending_command);
             command_counter++;
-            pending_command = commands[command_counter];
+            if (command_counter < commands.size()){
+                pending_command = commands[command_counter];
+            }
+            else command_pending = false;
         }
 
         // update vehicles state and emit simulation state
