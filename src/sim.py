@@ -68,9 +68,33 @@ def display_target(x,y,size,color):
 
 def display_uav(x, y, az, size, color):
     # object coordinates x in [-1,1], y in [-1,1]
-    uav_vertices = np.array([[-0.3, -0.3],
-                            [0.3, -0.3],
-                            [0, 0.8]]).transpose() # tringle pointed up
+    # uav_vertices = np.array([[-0.3, -0.3],
+    #                         [0.3, -0.3],
+    #                         [0, 0.8]]).transpose() # tringle pointed up
+
+    uav_vertices = np.array(   [[0.00,0.65], 
+                                [0.11,0.54], 
+                                [0.11,0.43], 
+                                [0.06,0.32], 
+                                [0.06,0.10], 
+                                [0.88,-0.01], 
+                                [0.94,-0.12], 
+                                [0.06,-0.12], 
+                                [0.06,-0.34], 
+                                [0.28,-0.45], 
+                                [0.28,-0.56], 
+                                [0.00,-0.51], 
+                                [-0.28,-0.56], 
+                                [-0.28,-0.45], 
+                                [-0.06,-0.34], 
+                                [-0.06,-0.12], 
+                                [-0.94,-0.12], 
+                                [-0.88,-0.01], 
+                                [-0.06,0.10], 
+                                [-0.06,0.32], 
+                                [-0.11,0.43], 
+                                [-0.11,0.54], 
+                                [0.00,0.65] ]).transpose()
 
     uav_color = color
     
@@ -147,7 +171,7 @@ while run and data_point_index < len(data_uavs[0]):
     # display UAVs
     for uav_index in range(len(data_uavs)):
         pos = data_uavs[uav_index][data_point_index]
-        display_uav(pos[1], pos[2], pos[3], 25, uav_colors[uav_index])
+        display_uav(pos[1], pos[2], pos[3], 40, uav_colors[uav_index])
 
     # displaying targets
     for target in data_targets:
