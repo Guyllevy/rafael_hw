@@ -9,7 +9,7 @@ if [ "$1" == "--compile" ]; then
     fi
     
     # Compile the C++ program
-    g++ src/sol.cpp -o bin/sol.exe
+    g++ src/*.cpp -o bin/sol.exe
     
     # Check if compilation was successful
     if [ $? -ne 0 ]; then

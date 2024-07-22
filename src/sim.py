@@ -18,7 +18,7 @@ num_uav = int(d["N_uav"])
 
 
 # clip coordinates
-clip_scale = 0.3
+clip_scale = 0.4
 flip_clip = np.array([[1, 0], [0, -1]])
 scale_clip = np.identity(2) * clip_scale
 translate_clip = np.array([[SCREEN_WIDTH/2, SCREEN_HEIGHT/2]]).transpose()
@@ -161,12 +161,12 @@ run = True
 data_point_index = 0
 while run and data_point_index < len(data_uavs[0]):
     
-    screen.fill((150,150,150))
+    screen.fill((40, 40, 40))
 
     # drawing a grid
     for x in range(-1500, 1500, 250):
         for y in range(-1500,1500,250):
-            display_target(x, y, 10, (40, 40, 40))
+            display_target(x, y, 10, (140, 140, 140))
     
     # display UAVs
     for uav_index in range(len(data_uavs)):
