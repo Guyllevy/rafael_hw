@@ -24,9 +24,15 @@ private:
     std::string file_name;
     std::ofstream out_stream;
 
+    int behavior;
+
+    // for the second behavior
+    bool waiting;
+    bool changed_target;
+
 public:
 
-    Uav(int N, double R, double X0, double Y0, double Z0, double V0, double Az);
+    Uav(int N, double R, double X0, double Y0, double Z0, double V0, double Az, int behave = 1);
     double get_azimuth(); // returns values in (-PI, PI]
     void emit_data(double time);
     void recieve_command(Command c);

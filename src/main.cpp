@@ -42,7 +42,7 @@ int main(){
     std::vector<Uav*> vehicles;
     Uav* v;
     for (int i = 0 ; i < data->N_uav ; i++){
-        v = new Uav(i, data->R, data->X0, data->Y0, data->Z0, data->V0, data->Az);
+        v = new Uav(i, data->R, data->X0, data->Y0, data->Z0, data->V0, data->Az, 0);
         vehicles.push_back(v);
     }
 
