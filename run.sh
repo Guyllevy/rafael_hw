@@ -2,6 +2,12 @@
 
 # Check if the compile flag is specified
 if [ "$1" == "--compile" ]; then
+
+    # Check if the bin directory exists, if not create it
+    if [ ! -d "bin" ]; then
+        mkdir bin
+    fi
+    
     # Compile the C++ program
     g++ src/sol.cpp -o bin/sol.exe
     

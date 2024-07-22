@@ -4,7 +4,7 @@ run on linux (or wsl)
 
     python3 -m venv venv
 
--to activate:
+-activate it:
 
     source venv/bin/activate
 
