@@ -59,6 +59,7 @@ with open("io_files/SimParams.ini", 'r') as file:
         d[key] = value
 
 num_uav = int(d["N_uav"])
+dt = float(d["Dt"])
 
 
 
@@ -151,6 +152,10 @@ furthest_target = max([max(abs(x), abs(y)) for (_,_,x,y) in data_targets])
 pygame.init()
 
 screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
+clock = pygame.time.Clock()
+# Font for displaying FPS
+font = pygame.font.SysFont("Arial", 18)
+frame_rate_limit = int(1/dt)
 
 # defining a background and drawing on it static objects, like targets - speed optimization
 background = pygame.Surface((SCREEN_WIDTH, SCREEN_HEIGHT))
@@ -173,6 +178,10 @@ while run and data_point_index < len(data_uavs[0]):
     for uav_index in range(len(data_uavs)):
         pos = data_uavs[uav_index][data_point_index]
         display_uav(screen, pos[1], pos[2], pos[3], 40, uav_colors[uav_index])
+
+    fps = clock.get_fps()
+    fps_text = font.render(f"FPS: {int(fps)}", True, pygame.Color('white'))
+    screen.blit(fps_text, (10, 10))
     
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
@@ -181,6 +190,8 @@ while run and data_point_index < len(data_uavs[0]):
     pygame.display.update()
     
     data_point_index += 1
+
+    clock.tick(frame_rate_limit)
     
 
 pygame.quit()
