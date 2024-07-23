@@ -60,6 +60,7 @@ with open("io_files/SimParams.ini", 'r') as file:
 
 num_uav = int(d["N_uav"])
 dt = float(d["Dt"])
+time_limit = float(d["TimeLim"])
 
 
 
@@ -118,6 +119,15 @@ def display_grid(surface, span, step, color):
             display_object(surface, grid_point_vertices, color, model, translate_model)
     display_object(surface, grid_point_vertices, color, 20*np.identity(2), np.array([[0, 0]]).transpose())
 
+def display_timing_data(clock, frame_rate_limit, time, time_limit):
+    time_string = f"{float(time):.2f}".rjust(6, ' ')
+    fps = clock.get_fps()
+    fps_string = f"{int(fps)}".rjust(4, ' ')
+    fps_text = font.render(f"FPS:{fps_string}, (real time {frame_rate_limit} FPS)", True, pygame.Color('white'))
+    time_text = font.render(f"time:{time_string} (time limit {time_limit})", True, pygame.Color('white'))
+    screen.blit(fps_text, (10, 10))
+    screen.blit(time_text, (10, 30))
+
 
 ### main code ###
 data_uavs = []
@@ -153,8 +163,7 @@ pygame.init()
 
 screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
 clock = pygame.time.Clock()
-# Font for displaying FPS
-font = pygame.font.SysFont("Arial", 18)
+font = pygame.font.SysFont("Courier New", 14)
 frame_rate_limit = int(1/dt)
 
 # defining a background and drawing on it static objects, like targets - speed optimization
@@ -179,9 +188,8 @@ while run and data_point_index < len(data_uavs[0]):
         pos = data_uavs[uav_index][data_point_index]
         display_uav(screen, pos[1], pos[2], pos[3], 40, uav_colors[uav_index])
 
-    fps = clock.get_fps()
-    fps_text = font.render(f"FPS: {int(fps)}", True, pygame.Color('white'))
-    screen.blit(fps_text, (10, 10))
+    time = data_uavs[0][data_point_index][0]
+    display_timing_data(clock, frame_rate_limit, time, time_limit)
     
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
