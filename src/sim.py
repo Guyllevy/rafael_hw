@@ -1,6 +1,7 @@
 import pygame
 import numpy as np
 import colorsys
+import time
 
 SCREEN_WIDTH = 800
 SCREEN_HEIGHT = 600
@@ -119,10 +120,9 @@ def display_grid(surface, span, step, color):
             display_object(surface, grid_point_vertices, color, model, translate_model)
     display_object(surface, grid_point_vertices, color, 20*np.identity(2), np.array([[0, 0]]).transpose())
 
-def display_timing_data(clock, frame_rate_limit, time, time_limit):
+def display_timing_data(clock, fps, frame_rate_limit, time, time_limit):
     time_string = f"{float(time):.2f}".rjust(6, ' ')
-    fps = clock.get_fps()
-    fps_string = f"{int(fps)}".rjust(4, ' ')
+    fps_string = f"{float(fps):.2f}".rjust(6, ' ')
     fps_text = font.render(f"FPS:{fps_string}, (real time {frame_rate_limit} FPS)", True, pygame.Color('white'))
     time_text = font.render(f"time:{time_string} (time limit {time_limit})", True, pygame.Color('white'))
     screen.blit(fps_text, (10, 10))
@@ -136,24 +136,24 @@ for uav_number in range(num_uav):
     with open("io_files/UAV" + str(uav_number) + ".txt", 'r') as file:
         for line in file:
             line = line.strip()
-            time, x, y, az = line.split()
-            time = float(time)
+            t, x, y, az = line.split()
+            t = float(t)
             x =    float(x)
             y =    float(y)
             az =   float(az)
-            data_single_uav.append((time, x, y, az))
+            data_single_uav.append((t, x, y, az))
     data_uavs.append(data_single_uav)
 
 data_targets = []
 with open("io_files/SimCmds.txt", 'r') as file:
     for line in file:
         line = line.strip()
-        time, targeting_uav, x, y = line.split()
-        time = float(time)
+        t, targeting_uav, x, y = line.split()
+        t = float(t)
         targeting_uav =  int(targeting_uav)
         x =    float(x)
         y =    float(y)
-        data_targets.append((time, targeting_uav, x, y))
+        data_targets.append((t, targeting_uav, x, y))
 
 uav_colors = generate_colors(num_uav)
 furthest_target = max([max(abs(x), abs(y)) for (_,_,x,y) in data_targets])
@@ -165,6 +165,7 @@ screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
 clock = pygame.time.Clock()
 font = pygame.font.SysFont("Courier New", 14)
 frame_rate_limit = int(1/dt)
+frame_time = dt
 
 # defining a background and drawing on it static objects, like targets - speed optimization
 background = pygame.Surface((SCREEN_WIDTH, SCREEN_HEIGHT))
@@ -179,6 +180,7 @@ for target in data_targets:
 
 run = True
 data_point_index = 0
+real_time_start = time.time()
 while run and data_point_index < len(data_uavs[0]):
 
     screen.blit(background, (0,0))
@@ -188,8 +190,9 @@ while run and data_point_index < len(data_uavs[0]):
         pos = data_uavs[uav_index][data_point_index]
         display_uav(screen, pos[1], pos[2], pos[3], 40, uav_colors[uav_index])
 
-    time = data_uavs[0][data_point_index][0]
-    display_timing_data(clock, frame_rate_limit, time, time_limit)
+    sim_time = data_uavs[0][data_point_index][0]
+    fps = clock.get_fps()
+    display_timing_data(clock, fps, frame_rate_limit, sim_time, time_limit)
     
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
@@ -199,7 +202,12 @@ while run and data_point_index < len(data_uavs[0]):
     
     data_point_index += 1
 
-    clock.tick(frame_rate_limit)
+    real_time_now = time.time()
+    time_diff = sim_time - (real_time_now - real_time_start) # if > 0 we hurry 
+    if (time_diff > 0):
+        time.sleep(time_diff)
+    
+    clock.tick()
     
 
 pygame.quit()
