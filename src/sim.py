@@ -98,17 +98,12 @@ def display_target(surface, x, y, size, color):
     return
 
 def display_uav(surface, x, y, az, size, color):
-
-    # world coordinates - all R^2
-    scale = np.identity(2) * size
-
     az_rad = az * (np.pi / 180)
     alpha = -np.pi/2 + az_rad
-    rotate = np.array([[np.cos(alpha), -np.sin(alpha)],
-                       [np.sin(alpha), np.cos(alpha)]])
+    model = np.array([[np.cos(alpha), -np.sin(alpha)],
+                       [np.sin(alpha), np.cos(alpha)]]) * size
 
     translate_model = np.array([[x, y]]).transpose()
-    model = scale @ rotate
 
     display_object(surface, uav_vertices, color, model, translate_model)
     
