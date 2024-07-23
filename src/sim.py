@@ -168,6 +168,7 @@ furthest_target = max([max(abs(x), abs(y)) for (_,_,x,y) in data_targets])
 pygame.init()
 
 screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
+pygame.display.set_caption("UAV simulator")
 clock = pygame.time.Clock()
 font = pygame.font.SysFont("Courier New", 14)
 frame_rate_limit = int(1/dt)
