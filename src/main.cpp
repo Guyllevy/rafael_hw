@@ -23,20 +23,12 @@ int main(){
     
     // read initialization inputs
     read_params("io_files/SimParams.ini", data);
-
-    // debug
-    // data->show();
     
     // read commands
     read_commands("io_files/SimCmds.txt", commands);
 
     // sort commands by time
     std::sort(commands.begin(), commands.end(), compareByTime);
-
-    // debug
-    // for (auto c : commands){
-    //     c.show();
-    // }
 
     // initialize vehicles
     std::vector<Uav*> vehicles;

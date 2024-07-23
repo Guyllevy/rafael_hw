@@ -75,7 +75,7 @@ def generate_colors(n, saturation=0.8, lightness=0.4):
         colors.append(rgb_color)
     return colors
 
-def display_object(vertices, color, model, translate_model):
+def display_object(surface, vertices, color, model, translate_model):
     points = model @ vertices
     points = points + translate_model
 
@@ -84,20 +84,20 @@ def display_object(vertices, color, model, translate_model):
 
     points = points.transpose()
     
-    pygame.draw.polygon(screen, color, points)
+    pygame.draw.polygon(surface, color, points)
 
-def display_target(x,y,size,color):
+def display_target(surface, x, y, size, color):
 
     # world coordinates - all R^2
     scale = np.identity(2) * size
     translate_model = np.array([[x, y]]).transpose()
     model = scale
 
-    display_object(target_vertices, color, model, translate_model)
+    display_object(surface, target_vertices, color, model, translate_model)
     
     return
 
-def display_uav(x, y, az, size, color):
+def display_uav(surface, x, y, az, size, color):
 
     # world coordinates - all R^2
     scale = np.identity(2) * size
@@ -110,16 +110,17 @@ def display_uav(x, y, az, size, color):
     translate_model = np.array([[x, y]]).transpose()
     model = scale @ rotate
 
-    display_object(uav_vertices, color, model, translate_model)
+    display_object(surface, uav_vertices, color, model, translate_model)
     
     return
 
-def display_grid(span, step, color):
+def display_grid(surface, span, step, color):
     for x in range(-span, span+1, step):
         for y in range(-span, span+1, step):
             model = np.identity(2)
             translate_model = np.array([[x, y]]).transpose()
-            display_object(grid_point_vertices, color, model, translate_model)
+            display_object(surface, grid_point_vertices, color, model, translate_model)
+    display_object(surface, grid_point_vertices, color, 20*np.identity(2), np.array([[0, 0]]).transpose())
 
 
 ### main code ###
@@ -156,23 +157,27 @@ pygame.init()
 
 screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
 
+# defining a background and drawing on it static objects, like targets - speed optimization
+background = pygame.Surface((SCREEN_WIDTH, SCREEN_HEIGHT))
+background.fill((40, 40, 40))
+
+# drawing a grid
+display_grid(background, 2*int(furthest_target), 100, (140, 140, 140))
+
+# displaying targets
+for target in data_targets:
+    display_target(background, target[2], target[3], 30, uav_colors[target[1]])
+
 run = True
 data_point_index = 0
 while run and data_point_index < len(data_uavs[0]):
-    
-    screen.fill((40, 40, 40))
 
-    # drawing a grid
-    # display_grid(2*int(furthest_target), 500, (140, 140, 140))
+    screen.blit(background, (0,0))
 
-    # displaying targets
-    for target in data_targets:
-        display_target(target[2], target[3], 30, uav_colors[target[1]])
-    
     # display UAVs
     for uav_index in range(len(data_uavs)):
         pos = data_uavs[uav_index][data_point_index]
-        display_uav(pos[1], pos[2], pos[3], 40, uav_colors[uav_index])
+        display_uav(screen, pos[1], pos[2], pos[3], 40, uav_colors[uav_index])
     
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
