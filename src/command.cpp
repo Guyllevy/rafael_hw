@@ -4,7 +4,7 @@
 #include <fstream>
 #include <sstream>
 
-#include "../include/command.hpp"
+#include "command.hpp"
 
 
 int read_commands(std::string path, std::vector<Command>& commands){

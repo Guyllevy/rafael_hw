@@ -1,7 +1,7 @@
 
 #include <cmath>
 #include <iostream>
-#include "../include/Vec3.hpp"
+#include "Vec3.hpp"
 
 Vec3::Vec3(double x, double y, double z) : x(x), y(y), z(z) {};
 

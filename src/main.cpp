@@ -7,10 +7,10 @@
 #include <cmath>
 #include <iomanip>
 
-#include "../include/Vec3.hpp"
-#include "../include/uav.hpp"
-#include "../include/command.hpp"
-#include "../include/init_data.hpp"
+#include "Vec3.hpp"
+#include "uav.hpp"
+#include "command.hpp"
+#include "init_data.hpp"
 
 bool compareByTime(const Command& a, const Command& b) {
     return a.time < b.time;
@@ -42,7 +42,7 @@ int main(){
     std::vector<Uav*> vehicles;
     Uav* v;
     for (int i = 0 ; i < data->N_uav ; i++){
-        v = new Uav(i, data->R, data->X0, data->Y0, data->Z0, data->V0, data->Az, 1);
+        v = new Uav(i, data->R, data->X0, data->Y0, data->Z0, data->V0, data->Az, 3);
         vehicles.push_back(v);
     }
 

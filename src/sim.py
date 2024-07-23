@@ -164,15 +164,15 @@ while run and data_point_index < len(data_uavs[0]):
 
     # drawing a grid
     # display_grid(2*int(furthest_target), 500, (140, 140, 140))
+
+    # displaying targets
+    for target in data_targets:
+        display_target(target[2], target[3], 30, uav_colors[target[1]])
     
     # display UAVs
     for uav_index in range(len(data_uavs)):
         pos = data_uavs[uav_index][data_point_index]
         display_uav(pos[1], pos[2], pos[3], 40, uav_colors[uav_index])
-
-    # displaying targets
-    for target in data_targets:
-        display_target(target[2], target[3], 30, uav_colors[target[1]])
     
     for event in pygame.event.get():
         if event.type == pygame.QUIT:

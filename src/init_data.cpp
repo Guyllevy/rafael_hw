@@ -4,7 +4,7 @@
 #include <sstream>
 #include <iostream>
 
-#include "../include/init_data.hpp"
+#include "init_data.hpp"
 
 void InitData::show(){
     std::cout << "N_uav: " << N_uav << std::endl;

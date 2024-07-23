@@ -2,9 +2,9 @@
 #include <iomanip>
 #include <cmath>
 
-#include "../include/uav.hpp"
-#include "../include/command.hpp"
-#include "../include/Vec3.hpp"
+#include "uav.hpp"
+#include "command.hpp"
+#include "Vec3.hpp"
 
 
 const double PI = 3.14159265359;

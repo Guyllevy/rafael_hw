@@ -9,7 +9,7 @@ if [ "$1" == "--compile" ]; then
     fi
     
     # Compile the C++ program
-    g++ src/*.cpp -o bin/sol.exe
+    g++ src/*.cpp -I ./include -o bin/sol.exe
     
     # Check if compilation was successful
     if [ $? -ne 0 ]; then
@@ -48,3 +48,6 @@ fi
 
 # Deactivate the virtual environment
 deactivate
+
+# delete output files used
+rm io_files/UAV*.txt
