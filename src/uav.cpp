@@ -1,5 +1,6 @@
 
 #include <iomanip>
+#include <cmath>
 
 #include "../include/uav.hpp"
 #include "../include/command.hpp"
@@ -21,17 +22,20 @@ double rad_norm_to_npi_to_pi(double angle){
 }
 
 
-Uav::Uav(int N, double R, double X0, double Y0, double Z0, double V0, double Az, int behave) : position{Vec3(X0,Y0,Z0)}, 
+Uav::Uav(int N, double R, double X0, double Y0, double Z0, double V0, double Az, int mode_of_op) : position{Vec3(X0,Y0,Z0)}, 
 serial_number{N}, min_turn_r{R} {
     double Az_rad = deg_to_rad(Az);
     speed = Vec3(V0 * cos(Az_rad), V0 * sin(Az_rad), 0);
     radial_acc_ability =  (speed.mag() * speed.mag() / min_turn_r);
+    space_left = Vec3(0,0,0);
+    
+    mode = mode_of_op;
     exists_target = false;
-    file_name = "io_files/UAV" + std::to_string(serial_number) + ".txt";
-    out_stream = std::ofstream(file_name);
-    behavior = behave;
     waiting = false;
     changed_target = false;
+
+    file_name = "io_files/UAV" + std::to_string(serial_number) + ".txt";
+    out_stream = std::ofstream(file_name);
 }
 
 double Uav::get_azimuth(){ // returns values in (-PI, PI]
@@ -59,16 +63,16 @@ void Uav::update(double dt){
     double omega = speed.mag()/min_turn_r; // rads/sec
     double epsilon_turn = omega * dt; // in dt seconds the uav wont turn more than w * dt radians
     Vec3 acc = Vec3();
+    Vec3 position_xy = Vec3(position.x, position.y, 0);
     Vec3 planar_speed = Vec3(speed.x, speed.y, 0);
-    Vec3 acc_right = (planar_speed.normalize().cross(Vec3(0,0,1))) * radial_acc_ability;
-    Vec3 acc_left = (planar_speed.normalize().cross(Vec3(0,0,-1))) * radial_acc_ability;
+    Vec3 acc_right = (planar_speed.cross(Vec3(0,0,1))).normalize() * radial_acc_ability;
+    Vec3 acc_left = (planar_speed.cross(Vec3(0,0,-1))).normalize() * radial_acc_ability;
 
     // aproach target, always, resulting in somewhat random spin direction
     // results in spining tanget to the target.
-    if (behavior == 0){ 
+    if (mode == 0){ 
         if (exists_target){
             Vec3 current_target_xy = Vec3(current_target.x, current_target.y, 0);
-            Vec3 position_xy = Vec3(position.x, position.y, 0);
             Vec3 path = (current_target_xy - position_xy).normalize();
 
             double alpha = rad_norm_to_npi_to_pi(this->get_azimuth() - atan2(path.y, path.x));
@@ -82,10 +86,9 @@ void Uav::update(double dt){
 
     }
     // approach close enough and transition to waiting - turning clockwise
-    else if (behavior == 1){
+    else if (mode == 1){
         if (exists_target){
             Vec3 target_xy = Vec3(current_target.x, current_target.y, 0);
-            Vec3 position_xy = Vec3(position.x, position.y, 0);
             Vec3 path = (target_xy - position_xy).normalize();
 
             if (changed_target) {
@@ -106,18 +109,16 @@ void Uav::update(double dt){
         }
 
     }
-    // approach -R meters from the left to target,(from uav prespective)
+    // approach R meters from the left to target,(from uav prespective)
     // when reaching spin clockwise.
-    // results in circles around the target.
-    else if (behavior == 2){
+    // results in circles around the target. (if uav far enough)
+    else if (mode == 2){
         if (exists_target){
             Vec3 target_xy = Vec3(current_target.x, current_target.y, 0);
-            Vec3 position_xy = Vec3(position.x, position.y, 0);
-            Vec3 path = (target_xy - position_xy).normalize();
-            Vec3 space_left = Vec3(path.normalize()).cross(Vec3(0,0,1)) * min_turn_r;
-            path = path + space_left;
-
+            Vec3 path = target_xy + space_left - position_xy;
+            
             if (changed_target) {
+                space_left = Vec3(path.normalize()).cross(Vec3(0,0,-1)) * min_turn_r;
                 waiting = false;
                 changed_target = false;
             }
@@ -128,10 +129,57 @@ void Uav::update(double dt){
             else if (alpha <= -epsilon_turn) acc = acc_left;
             else acc = Vec3(0,0,0);
 
-            if ((target_xy + space_left - position_xy).mag() < min_turn_r/2) waiting = true;
+            if (path.mag() < min_turn_r/10) waiting = true;
         }
         else {
             acc = Vec3(0,0,0);
+        }
+    }
+    // previous modes gain speed in spining. (because of the nature of having Dt > 0
+    // and adding accelaration vector)
+    // this mode aims to keep a fixed speed. by rotation transform of vector.
+    else if (mode == 3){
+        acc = Vec3(0,0,0);
+        if (exists_target){
+            Vec3 target_xy = Vec3(current_target.x, current_target.y, 0);
+            Vec3 path = target_xy - position_xy;
+            
+            if (changed_target) {
+                waiting = false;
+                changed_target = false;
+            }
+
+            double alpha = rad_norm_to_npi_to_pi(this->get_azimuth() - atan2(path.y, path.x));
+            if (waiting) speed = speed.rotateZ(-omega*dt);
+            else if (alpha >= epsilon_turn) speed = speed.rotateZ(-omega*dt);
+            else if (alpha <= -epsilon_turn) speed = speed.rotateZ(omega*dt);
+
+            if (path.mag() < min_turn_r/10){
+                waiting = true;
+            }
+        }
+    }
+    // aims to keep fixed speed and mode 2 feature of keeping target in center of circle
+    else if (mode == 4){
+        acc = Vec3(0,0,0);
+        if (exists_target){
+            Vec3 target_xy = Vec3(current_target.x, current_target.y, 0);
+            Vec3 path = target_xy + space_left - position_xy;
+            
+            if (changed_target) {
+                space_left = Vec3(path.normalize()).cross(Vec3(0,0,-1)) * min_turn_r;
+                waiting = false;
+                changed_target = false;
+            }
+
+            double alpha = rad_norm_to_npi_to_pi(this->get_azimuth() - atan2(path.y, path.x));
+            if (waiting) speed = speed.rotateZ(-omega*dt);
+            else if (alpha >= epsilon_turn) speed = speed.rotateZ(-omega*dt);
+            else if (alpha <= -epsilon_turn) speed = speed.rotateZ(omega*dt);
+
+            if (path.mag() < min_turn_r/10){
+                waiting = true;
+            }
         }
     }
     
@@ -141,5 +189,9 @@ void Uav::update(double dt){
 
     // update position depending on speed.
     position = position + speed * dt;
+}
+
+Vec3 Uav::get_speed(){
+    return speed;
 }
 

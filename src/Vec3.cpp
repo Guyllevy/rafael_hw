@@ -1,5 +1,6 @@
 
 #include <cmath>
+#include <iostream>
 #include "../include/Vec3.hpp"
 
 Vec3::Vec3(double x, double y, double z) : x(x), y(y), z(z) {};
@@ -41,6 +42,19 @@ Vec3 Vec3::normalize() const{
     return (*this) * (1 / this->mag());
 }
 
+Vec3 Vec3::rotateZ(double theta){
+    return Vec3(x * cos(theta) - y * sin(theta),
+                x * sin(theta) + y * cos(theta),
+                z);
+}
+
 double Vec3::angle(const Vec3& other) const{
     return acos(this->normalize().dot(other.normalize()));
+}
+
+void Vec3::show() const{
+    std::cout << "(" <<
+    x << ", " <<
+    y << ", " <<
+    z << ")" << std::endl;
 }

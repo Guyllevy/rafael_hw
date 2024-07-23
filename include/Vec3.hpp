@@ -32,7 +32,12 @@ class Vec3{
 
     Vec3 normalize() const;
 
+    Vec3 rotateZ(double theta);
+
     double angle(const Vec3& other) const;
+
+    void show() const;
+    
 
 };
 

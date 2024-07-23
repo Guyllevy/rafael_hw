@@ -24,19 +24,23 @@ private:
     std::string file_name;
     std::ofstream out_stream;
 
-    int behavior;
+    int mode; // default 0
 
-    // for the second behavior
+    // for mode 1 +
     bool waiting;
     bool changed_target;
 
+    // for mode 2 ,4
+    Vec3 space_left;
+
 public:
 
-    Uav(int N, double R, double X0, double Y0, double Z0, double V0, double Az, int behave = 1);
+    Uav(int N, double R, double X0, double Y0, double Z0, double V0, double Az, int mode_of_op = 1);
     double get_azimuth(); // returns values in (-PI, PI]
     void emit_data(double time);
     void recieve_command(Command c);
     void update(double dt);
+    Vec3 get_speed();
 
 };
 
