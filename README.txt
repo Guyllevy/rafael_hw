@@ -16,7 +16,7 @@ run on linux (or wsl)
 -input wanted parameters and commands in io_files/SimCmds.ini, io_files/SimParams.ini
 
 -run: (without venv activated)
-    ./run.sh --compile
+    ./run.sh --compile --run-cpp --run-python --clean-output --target-centered
 
 
 

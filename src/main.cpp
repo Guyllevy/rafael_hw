@@ -16,7 +16,10 @@ bool compareByTime(const Command& a, const Command& b) {
     return a.time < b.time;
 }
 
-int main(){
+int main(int argc, char* argv[]){
+
+    bool centered = false;
+    if (argc > 1 && std::string(argv[1]) == "--centered") centered = true;
 
     InitData* data = new InitData;
     std::vector<Command> commands;
@@ -34,7 +37,7 @@ int main(){
     std::vector<Uav*> vehicles;
     Uav* v;
     for (int i = 0 ; i < data->N_uav ; i++){
-        v = new Uav(i, data->R, data->X0, data->Y0, data->Z0, data->V0, data->Az, true);
+        v = new Uav(i, data->R, data->X0, data->Y0, data->Z0, data->V0, data->Az, centered);
         vehicles.push_back(v);
     }
 
@@ -70,8 +73,6 @@ int main(){
         time += data->Dt;
 
     }
-    
-    
 
     return 0;
 }
