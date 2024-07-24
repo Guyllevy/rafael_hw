@@ -6,6 +6,9 @@
 #include "command.hpp"
 #include "Vec3.hpp"
 
+#include <cstring>
+#include <cerrno>
+
 
 const double PI = 3.14159265359;
 
@@ -34,7 +37,16 @@ Uav::Uav(int N, double R, double X0, double Y0, double Z0, double V0, double Az,
     changed_target = false;
 
     file_name = "io_files/UAV" + std::to_string(serial_number) + ".txt";
-    out_stream = std::ofstream(file_name);
+    out_stream.open(file_name, std::ofstream::out | std::ofstream::app);
+    if (!out_stream.is_open()) {
+        std::cerr << "Error opening file: " << file_name << std::endl;
+    }
+}
+
+Uav::~Uav(){
+    if (out_stream.is_open()) {
+        out_stream.close();
+    }
 }
 
 double Uav::get_azimuth(){ // returns values in (-PI, PI]
@@ -42,11 +54,9 @@ double Uav::get_azimuth(){ // returns values in (-PI, PI]
 }
 
 void Uav::emit_data(double time){
-    out_stream.open(file_name, std::ios_base::app);
-    out_stream << std::fixed << std::setprecision(3) << time << " " 
-    << std::setprecision(2) << position.x << " " << position.y <<
-        " " << rad_to_deg(this->get_azimuth()) << std::endl;
-    out_stream.close();
+    out_stream << std::fixed << std::setprecision(3) << time << " "
+               << std::setprecision(2) << position.x << " " << position.y << " "
+               << rad_to_deg(this->get_azimuth()) << std::endl;
 }
 
 void Uav::recieve_command(Command c){

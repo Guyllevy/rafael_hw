@@ -36,6 +36,7 @@ private:
 public:
 
     Uav(int N, double R, double X0, double Y0, double Z0, double V0, double Az, bool centered = false);
+    ~Uav();
     double get_azimuth(); // returns values in (-PI, PI]
     void emit_data(double time);
     void recieve_command(Command c);

@@ -83,11 +83,11 @@ for arg in "$@"; do
             clean_output_flag=true
             shift
             ;;
-        --run-python)
+        --run-graphics)
             run_python_flag=true
             shift
             ;;
-        --run-cpp)
+        --run-program)
             run_cpp_flag=true
             shift
             ;;

@@ -74,5 +74,10 @@ int main(int argc, char* argv[]){
 
     }
 
+    for (auto v : vehicles){
+            delete v;
+            v = nullptr;
+        } 
+    
     return 0;
 }
