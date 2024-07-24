@@ -19,6 +19,7 @@ private:
 
     std::string file_name;
     std::ofstream out_stream;
+    std::ostringstream oss;
 
     // dynamic members
     Vec3 position;

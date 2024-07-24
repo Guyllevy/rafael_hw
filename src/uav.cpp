@@ -37,13 +37,14 @@ Uav::Uav(int N, double R, double X0, double Y0, double Z0, double V0, double Az,
     changed_target = false;
 
     file_name = "io_files/UAV" + std::to_string(serial_number) + ".txt";
+}
+
+Uav::~Uav(){
     out_stream.open(file_name, std::ofstream::out | std::ofstream::app);
     if (!out_stream.is_open()) {
         std::cerr << "Error opening file: " << file_name << std::endl;
     }
-}
-
-Uav::~Uav(){
+    out_stream << oss.str();
     if (out_stream.is_open()) {
         out_stream.close();
     }
@@ -54,7 +55,7 @@ double Uav::get_azimuth(){ // returns values in (-PI, PI]
 }
 
 void Uav::emit_data(double time){
-    out_stream << std::fixed << std::setprecision(3) << time << " "
+    oss << std::fixed << std::setprecision(3) << time << " "
                << std::setprecision(2) << position.x << " " << position.y << " "
                << rad_to_deg(this->get_azimuth()) << std::endl;
 }
