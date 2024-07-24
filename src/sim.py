@@ -104,7 +104,6 @@ def display_target(surface, x, y, size, color):
 
     display_object(surface, target_vertices, color, model, translate_model)
     
-    return
 
 def display_uav(surface, x, y, az, size, color):
     az_rad = az * (np.pi / 180)
@@ -116,7 +115,13 @@ def display_uav(surface, x, y, az, size, color):
 
     display_object(surface, uav_vertices, color, model, translate_model)
     
-    return
+
+def display_trail_line(surface, line): # line [x0,y0,x1,y1,(r,b,g)]
+    points = np.array([line[0:2], line[2:4]]).transpose()
+    points = flip_clip @ scale_clip @ points
+    points = points + translate_clip
+    points = points.transpose()
+    pygame.draw.line(surface, line[4], points[0], points[1])
 
 def display_grid(surface, span, step, color):
     for x in range(-span, span+1, step):
@@ -133,6 +138,9 @@ def display_timing_data(clock, fps, frame_rate_limit, time, time_limit):
     time_text = font.render(f"time:{time_string} (time limit {time_limit})", True, pygame.Color('white'))
     screen.blit(fps_text, (10, 10))
     screen.blit(time_text, (10, 30))
+
+
+
 
 
 ### main code ###
@@ -186,6 +194,8 @@ for target in data_targets:
     display_target(background, target[2], target[3], 30, uav_colors[target[1]])
 
 run = True
+trail = True
+
 data_point_index = 0
 real_time_start = time.time()
 while run and data_point_index < len(data_uavs[0]):
@@ -194,8 +204,13 @@ while run and data_point_index < len(data_uavs[0]):
 
     # display UAVs
     for uav_index in range(len(data_uavs)):
+        prev = data_uavs[uav_index][data_point_index -1]
         pos = data_uavs[uav_index][data_point_index]
         display_uav(screen, pos[1], pos[2], pos[3], 40, uav_colors[uav_index])
+        if trail == True and data_point_index > 0:
+            line = (prev[1], prev[2], pos[1], pos[2], uav_colors[uav_index])
+            display_trail_line(background, line)
+
 
     sim_time = data_uavs[0][data_point_index][0]
     fps = clock.get_fps()

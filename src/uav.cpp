@@ -40,7 +40,7 @@ Uav::Uav(int N, double R, double X0, double Y0, double Z0, double V0, double Az,
 }
 
 Uav::~Uav(){
-    out_stream.open(file_name, std::ofstream::out | std::ofstream::app);
+    out_stream.open(file_name, std::ofstream::out | std::ofstream::trunc);
     if (!out_stream.is_open()) {
         std::cerr << "Error opening file: " << file_name << std::endl;
     }

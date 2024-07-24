@@ -1,0 +1,46 @@
+the projects is made up of 2 parts:
+
+1. C++ program to parse inputs (params and commands) simulate the path of each UAV and output the coordinates and azimuth of each through time, to their corresponding files.
+        How it works:
+
+        First it parses the data which resides in the input files:
+
+            The data from SimParams.ini is used to initialize a struct called init_data - it contains all the data from SimParams.ini, just in usable C struct form.
+
+            The data from SimCmds.ini is used to fill a C++ vector with the commands (for which implemented the class Command).
+            (each command has information about time in which its given, serial number of the UAV its designated to and a target position X,Y.)
+            The commands vector is then sorted by the time of each command, for ease of use later on.
+
+        We then use a class UAV which contains all the information about a UAV in some specific time point.
+        We initialize a vector of UAVs (of size N_uav as obtained from the init_data instance).
+        We then go into the main loop the print each time point state for each uav.
+        Each loop increments a time variable by Dt in each iteration, the stop condition being time reaching TimeLim.
+        In each loop pending commands are checked in the commands vector.
+        We loop over the UAV vector.
+        The due commands are sent to the proper UAV objects, which set their target member to a new value, based on the command.
+        The UAV objects "update" method is then called (more on which later, but basically each uav has all the information
+        it needs to decide where he should be in the next time step).
+        The UAV objects "emit_data" method is also called, which tells them to print the current state (position, azimuth) to their file 
+        (for UAV number 1 for example - to UAV1.txt).
+        The loop finishes and we clean up allocated heap memory.
+
+        The update method: (essential behavior of this method changes based on the "centered" variable passed to the UAV constuctor,
+            lets assume for the simplicity of the explantion for now that it is set to False).
+            In this function the UAV "decides" based on its state what action should it take of 3 options - turn right, turn left, dont turn.
+            It makes this decision by measuring the angle difference between:
+            - the path from it to the target
+            - its azimuth.
+            if the angle small enough it doesnt turn. if the angle is positive we turn left, if its negative we turn right.
+            the turn is obtained by rotating the speed vector of the UAV around the Z axis, using action equivalent to rotating matrix multiplication -
+            in this way the speed magnitude stays exactly the same.
+            the rotation in each time step is Omega * dt, where Omega is the radial speed which can be achieved by UAV (calculated by (V0 / R)).
+            When the UAV reaches close enough to the target, it switches to waiting mode, on which it only turns right, and on which it stays up 
+            until a new command is sent to it.
+
+
+2. python (pygame) program to display graphically the results obtained by the first program.
+    ** because I already wrote a lot - maybe to much about the C++ code (which is more of the essence of the exercise) I will keep it very short on this part.
+    The python program reads the output files from the C++ program, and using the pygame library displays in each frame all the information about each time step -
+    which includes the positions of all the UAVs and all their targets specified in SimCmds. a trail is also drawn to get a better idea of the path each UAV took.
+
+
